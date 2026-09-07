@@ -31,7 +31,7 @@ process.env.CHANNEL_USERNAME || 'ZAKASMINER'
 
 const BASE_URL = String(
 process.env.BASE_URL || ''
-).replace(//+$/, '');
+).replace(/\/+$/, '');
 
 const WEBHOOK_SECRET = String(
 process.env.WEBHOOK_SECRET || ''
