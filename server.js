@@ -11,7 +11,9 @@ const { URL } = require('url');
 // Base Server + Security + Configuration
 // ============================================================
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(
+  process.env.PORT || 3000
+);
 
 const BOT_TOKEN = String(
   process.env.BOT_TOKEN || ''
@@ -24,11 +26,13 @@ const OWNER_ID = String(
 ).trim();
 
 const BOT_USERNAME = String(
-  process.env.BOT_USERNAME || 'ZAKSH_MiningBot'
+  process.env.BOT_USERNAME ||
+  'ZAKSH_MiningBot'
 ).replace(/^@/, '');
 
 const CHANNEL_USERNAME = String(
-  process.env.CHANNEL_USERNAME || 'ZAKASMINER'
+  process.env.CHANNEL_USERNAME ||
+  'ZAKASMINER'
 ).replace(/^@/, '');
 
 const BASE_URL = String(
@@ -83,14 +87,21 @@ function randomId(bytes = 16) {
     .toString('hex');
 }
 
-function safeNumber(value, fallback = 0) {
+function safeNumber(
+  value,
+  fallback = 0
+) {
   const n = Number(value);
+
   return Number.isFinite(n)
     ? n
     : fallback;
 }
 
-function safeString(value, fallback = '') {
+function safeString(
+  value,
+  fallback = ''
+) {
   if (
     value === undefined ||
     value === null
@@ -122,12 +133,16 @@ function loadDB() {
 
     return {
       version: 1,
-      settings: parsed.settings || {},
-      users: parsed.users || {},
-      logs: Array.isArray(parsed.logs)
-        ? parsed.logs
-        : [],
-      campaign: parsed.campaign || null
+      settings:
+        parsed.settings || {},
+      users:
+        parsed.users || {},
+      logs:
+        Array.isArray(parsed.logs)
+          ? parsed.logs
+          : [],
+      campaign:
+        parsed.campaign || null
     };
   } catch (err) {
     console.error(
@@ -184,7 +199,7 @@ function ensureCampaign() {
 
   db.campaign = {
     id: randomId(12),
-    startAt,
+    startAt: startAt,
     endAt:
       startAt + PROGRAM_MS,
     createdAt: startAt
@@ -210,7 +225,7 @@ function logEvent(
     id: randomId(8),
     type: safeString(type),
     message: safeString(message),
-    meta,
+    meta: meta,
     createdAt: now()
   });
 
@@ -228,7 +243,10 @@ function logEvent(
 // Security helpers
 // ------------------------------------------------------------
 
-function timingSafeEqualText(a, b) {
+function timingSafeEqualText(
+  a,
+  b
+) {
   const aa = Buffer.from(
     safeString(a)
   );
@@ -295,7 +313,9 @@ function validateTelegramInitData(
     params.delete('hash');
 
     const dataCheckString =
-      Array.from(params.entries())
+      Array.from(
+        params.entries()
+      )
         .sort(([a], [b]) =>
           a.localeCompare(b)
         )
@@ -397,8 +417,8 @@ function validateTelegramInitData(
 
     return {
       ok: true,
-      user,
-      authDate
+      user: user,
+      authDate: authDate
     };
   } catch (err) {
     return {
@@ -570,7 +590,9 @@ function hasOwnerAccess(userId) {
 // User session extraction
 // ------------------------------------------------------------
 
-function getTelegramUserFromRequest(req) {
+function getTelegramUserFromRequest(
+  req
+) {
   const initData =
     req.headers[
       'x-telegram-init-data'
@@ -607,7 +629,11 @@ function healthData() {
 
 const server = http.createServer(
   (req, res) => {
-    if (req.url === '/health') {
+
+    // Health check
+    if (
+      req.url === '/health'
+    ) {
       return sendJSON(
         res,
         200,
@@ -615,9 +641,180 @@ const server = http.createServer(
       );
     }
 
-    notFound(res);
+    // Main Telegram Web App
+    if (
+      req.url === '/' ||
+      req.url === ''
+    ) {
+      return sendHTML(
+        res,
+        `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ZAKSH Mining</title>
+
+  <script
+    src="https://telegram.org/js/telegram-web-app.js"
+  ></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      background:
+        var(--tg-theme-bg-color, #111);
+
+      color:
+        var(--tg-theme-text-color, #fff);
+
+      text-align: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      margin: 50px auto;
+    }
+
+    .logo {
+      font-size: 70px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 38px;
+      margin: 10px 0;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      opacity: 0.85;
+      margin-bottom: 15px;
+    }
+
+    .description {
+      font-size: 16px;
+      line-height: 1.7;
+      opacity: 0.75;
+    }
+
+    button {
+      margin-top: 25px;
+
+      border: none;
+      border-radius: 14px;
+
+      padding: 15px 35px;
+
+      font-size: 18px;
+      font-weight: bold;
+
+      cursor: pointer;
+
+      background:
+        var(
+          --tg-theme-button-color,
+          #2481cc
+        );
+
+      color:
+        var(
+          --tg-theme-button-text-color,
+          #fff
+        );
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="logo">
+      💎
+    </div>
+
+    <h1>
+      ZAKSH
+    </h1>
+
+    <div class="subtitle">
+      ZAKSH Mining
+    </div>
+
+    <p class="description">
+      Mine crystals, complete tasks,
+      invite friends and earn ZAKSH tokens.
+    </p>
+
+    <button
+      onclick="startMining()"
+    >
+      ⛏️ Start Mining
+    </button>
+
+  </div>
+
+  <script>
+
+    const tg =
+      window.Telegram.WebApp;
+
+    tg.ready();
+
+    tg.expand();
+
+    function startMining() {
+
+      tg.showAlert(
+        'ZAKSH Mining is ready! 💎'
+      );
+
+    }
+
+  </script>
+
+</body>
+
+</html>`
+      );
+    }
+
+    // Unknown route
+    return notFound(res);
+
   }
 );
+
+// ------------------------------------------------------------
+// Start server
+// ------------------------------------------------------------
 
 server.listen(
   PORT,
