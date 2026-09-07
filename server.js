@@ -7,13 +7,10 @@ const path = require('path');
 const { URL } = require('url');
 
 // ============================================================
-// ZAKSH — PART 1
-// Base Server + Security + Configuration
+// ZAKSH — Base Server + Security + Configuration
 // ============================================================
 
-const PORT = Number(
-  process.env.PORT || 3000
-);
+const PORT = Number(process.env.PORT || 3000);
 
 const BOT_TOKEN = String(
   process.env.BOT_TOKEN || ''
@@ -26,13 +23,11 @@ const OWNER_ID = String(
 ).trim();
 
 const BOT_USERNAME = String(
-  process.env.BOT_USERNAME ||
-  'ZAKSH_MiningBot'
+  process.env.BOT_USERNAME || 'ZAKSH_MiningBot'
 ).replace(/^@/, '');
 
 const CHANNEL_USERNAME = String(
-  process.env.CHANNEL_USERNAME ||
-  'ZAKASMINER'
+  process.env.CHANNEL_USERNAME || 'ZAKASMINER'
 ).replace(/^@/, '');
 
 const BASE_URL = String(
@@ -87,10 +82,7 @@ function randomId(bytes = 16) {
     .toString('hex');
 }
 
-function safeNumber(
-  value,
-  fallback = 0
-) {
+function safeNumber(value, fallback = 0) {
   const n = Number(value);
 
   return Number.isFinite(n)
@@ -98,10 +90,7 @@ function safeNumber(
     : fallback;
 }
 
-function safeString(
-  value,
-  fallback = ''
-) {
+function safeString(value, fallback = '') {
   if (
     value === undefined ||
     value === null
@@ -133,16 +122,12 @@ function loadDB() {
 
     return {
       version: 1,
-      settings:
-        parsed.settings || {},
-      users:
-        parsed.users || {},
-      logs:
-        Array.isArray(parsed.logs)
-          ? parsed.logs
-          : [],
-      campaign:
-        parsed.campaign || null
+      settings: parsed.settings || {},
+      users: parsed.users || {},
+      logs: Array.isArray(parsed.logs)
+        ? parsed.logs
+        : [],
+      campaign: parsed.campaign || null
     };
   } catch (err) {
     console.error(
@@ -163,8 +148,7 @@ function loadDB() {
 const db = loadDB();
 
 function saveDB() {
-  const tempFile =
-    DB_FILE + '.tmp';
+  const tempFile = DB_FILE + '.tmp';
 
   fs.writeFileSync(
     tempFile,
@@ -200,8 +184,7 @@ function ensureCampaign() {
   db.campaign = {
     id: randomId(12),
     startAt: startAt,
-    endAt:
-      startAt + PROGRAM_MS,
+    endAt: startAt + PROGRAM_MS,
     createdAt: startAt
   };
 
@@ -243,10 +226,7 @@ function logEvent(
 // Security helpers
 // ------------------------------------------------------------
 
-function timingSafeEqualText(
-  a,
-  b
-) {
+function timingSafeEqualText(a, b) {
   const aa = Buffer.from(
     safeString(a)
   );
@@ -276,22 +256,18 @@ function sha256(value) {
 // Telegram initData validation
 // ------------------------------------------------------------
 
-function validateTelegramInitData(
-  initData
-) {
+function validateTelegramInitData(initData) {
   if (!BOT_TOKEN) {
     return {
       ok: false,
-      error:
-        'BOT_TOKEN is not configured'
+      error: 'BOT_TOKEN is not configured'
     };
   }
 
   if (!initData) {
     return {
       ok: false,
-      error:
-        'Telegram initData is missing'
+      error: 'Telegram initData is missing'
     };
   }
 
@@ -305,17 +281,14 @@ function validateTelegramInitData(
     if (!receivedHash) {
       return {
         ok: false,
-        error:
-          'Telegram hash is missing'
+        error: 'Telegram hash is missing'
       };
     }
 
     params.delete('hash');
 
     const dataCheckString =
-      Array.from(
-        params.entries()
-      )
+      Array.from(params.entries())
         .sort(([a], [b]) =>
           a.localeCompare(b)
         )
@@ -351,8 +324,7 @@ function validateTelegramInitData(
     ) {
       return {
         ok: false,
-        error:
-          'Invalid Telegram signature'
+        error: 'Invalid Telegram signature'
       };
     }
 
@@ -365,8 +337,7 @@ function validateTelegramInitData(
     if (!authDate) {
       return {
         ok: false,
-        error:
-          'Telegram auth_date is missing'
+        error: 'Telegram auth_date is missing'
       };
     }
 
@@ -376,13 +347,11 @@ function validateTelegramInitData(
 
     if (
       age < 0 ||
-      age >
-        24 * 60 * 60 * 1000
+      age > 24 * 60 * 60 * 1000
     ) {
       return {
         ok: false,
-        error:
-          'Telegram initData expired'
+        error: 'Telegram initData expired'
       };
     }
 
@@ -393,25 +362,19 @@ function validateTelegramInitData(
 
     if (userRaw) {
       try {
-        user =
-          JSON.parse(userRaw);
+        user = JSON.parse(userRaw);
       } catch {
         return {
           ok: false,
-          error:
-            'Invalid Telegram user data'
+          error: 'Invalid Telegram user data'
         };
       }
     }
 
-    if (
-      !user ||
-      !user.id
-    ) {
+    if (!user || !user.id) {
       return {
         ok: false,
-        error:
-          'Telegram user is missing'
+        error: 'Telegram user is missing'
       };
     }
 
@@ -423,8 +386,7 @@ function validateTelegramInitData(
   } catch (err) {
     return {
       ok: false,
-      error:
-        'Invalid initData'
+      error: 'Invalid initData'
     };
   }
 }
@@ -433,13 +395,8 @@ function validateTelegramInitData(
 // HTTP helpers
 // ------------------------------------------------------------
 
-function sendJSON(
-  res,
-  status,
-  data
-) {
-  const body =
-    JSON.stringify(data);
+function sendJSON(res, status, data) {
+  const body = JSON.stringify(data);
 
   res.writeHead(
     status,
@@ -458,10 +415,7 @@ function sendJSON(
   res.end(body);
 }
 
-function sendHTML(
-  res,
-  html
-) {
+function sendHTML(res, html) {
   res.writeHead(
     200,
     {
@@ -509,8 +463,7 @@ function readBody(req) {
           size += chunk.length;
 
           if (
-            size >
-            1024 * 1024
+            size > 1024 * 1024
           ) {
             reject(
               new Error(
@@ -523,10 +476,7 @@ function readBody(req) {
             return;
           }
 
-          body +=
-            chunk.toString(
-              'utf8'
-            );
+          body += chunk.toString('utf8');
         }
       );
 
@@ -574,9 +524,7 @@ function isAdmin(userId) {
     return false;
   }
 
-  return (
-    user.role === 'admin'
-  );
+  return user.role === 'admin';
 }
 
 function hasOwnerAccess(userId) {
@@ -590,9 +538,7 @@ function hasOwnerAccess(userId) {
 // User session extraction
 // ------------------------------------------------------------
 
-function getTelegramUserFromRequest(
-  req
-) {
+function getTelegramUserFromRequest(req) {
   const initData =
     req.headers[
       'x-telegram-init-data'
@@ -631,9 +577,7 @@ const server = http.createServer(
   (req, res) => {
 
     // Health check
-    if (
-      req.url === '/health'
-    ) {
+    if (req.url === '/health') {
       return sendJSON(
         res,
         200,
@@ -641,7 +585,7 @@ const server = http.createServer(
       );
     }
 
-    // Main Telegram Web App
+    // Main Web App
     if (
       req.url === '/' ||
       req.url === ''
@@ -791,11 +735,9 @@ const server = http.createServer(
     tg.expand();
 
     function startMining() {
-
       tg.showAlert(
         'ZAKSH Mining is ready! 💎'
       );
-
     }
 
   </script>
@@ -808,7 +750,6 @@ const server = http.createServer(
 
     // Unknown route
     return notFound(res);
-
   }
 );
 
